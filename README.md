@@ -58,7 +58,7 @@ To contribute to FreeAPI, please follow these steps:
 
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix: `git checkout -b feat/your-feature-name` or `git checkout -b fix/your-bug-fix-name`.
-3. Make your changes and commit them with descriptive messages: `git commit -am 'Add your commit message'`.
+3. Make your changes and commit them using conventional commit messages: `git commit -am "feat: Add new feature"`. For more details on the commit format and other guidelines, please refer to the [Contributor Guidelines](./CONTRIBUTING.md).
 4. Push your changes to your forked repository: `git push origin feat/your-feature-name`.
 5. Submit a pull request to the main repository, explaining the changes you've made and providing any necessary details.
 
@@ -78,7 +78,7 @@ We appreciate your enthusiasm and look forward to your valuable contributions to
 
 Together, we can foster a collaborative environment and make a significant impact in the API integration landscape.
 
-Click [here](https://github.com/hiteshchoudhary/apihub/blob/dev/CONTRIBUTING.md) for detailed contribution guide.
+Click [here](https://github.com/hiteshchoudhary/apihub/blob/main/CONTRIBUTING.md) for detailed contribution guide.
 
 ## 🏁 Installation
 
@@ -121,7 +121,42 @@ yarn install
 yarn start
 ```
 
-6. Access the project APIs at the specified endpoints.
+7. Access the project APIs at the specified endpoints.
+
+### 🚄 Using Railway (One-click Deploy)
+
+To self-host the FreeAPI.app application, you can take advantage of a pre-built template that is readily available.
+
+[![Deploy FreeAPI.app](https://railway.app/button.svg)](https://railway.app/template/B2f7Hq)
+
+1. Click the button above to visit railway.app.
+
+2. Click on the **Deploy Now** button.
+
+3. (Optional) Sign in with GitHub to deploy.
+
+4. Fill in the Repository details:
+
+   - Specify the repo name (e.g., freeapi-app).
+   - Checkmark for Public/Private repository.
+
+5. For Environment variables, we have provided some default values in the `ENV` to reduce the burden, but some parameters are mandatory:
+
+   - `PORT`: Do not change the value, let it be set to 8080 to view the swagger docs after deployment.
+   - `MONGODB_URI`: Provide the MongoDB Atlas database URL. An example is prefilled for you, edit/update it to continue.
+   - `NODE_ENV`: Default set to 'development' to view the logs. You may choose to change it to any other value such as 'prod' to hide them.
+   - `EXPRESS_SESSION_SECRET`: It is advised to change the default value to your own secret value.
+   - `ACCESS_TOKEN_SECRET`: It is advised to change the default value to your own secret value.
+   - `ACCESS_TOKEN_EXPIRY`: Set to 1 day as default.
+   - `REFRESH_TOKEN_SECRET`: It is advised to change the default value to your own secret value.
+   - `REFRESH_TOKEN_EXPIRY`: Set to 10 days as default.
+
+6. Once you fill in the required environment parameters, if you choose to add others such as PayPal, Google, and Razorpay, please proceed to mention your credentials in the form.
+
+7. Click on the **Deploy** button to trigger the first build.
+   - Monitor the server logs; if you come across any deployment problems, feel free to raise an issue for our team to look into.
+
+Note: Once the application is deployed, please wait for 3-5 minutes for the swagger docs to be available.
 
 # 📜 Swagger Docs
 

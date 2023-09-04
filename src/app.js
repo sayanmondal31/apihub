@@ -4,13 +4,16 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 import session from "express-session";
 import fs from "fs";
+import { createServer } from "http";
 import passport from "passport";
 import path from "path";
+import { Server } from "socket.io";
 import swaggerUi from "swagger-ui-express";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { DB_NAME } from "./constants.js";
 import { dbInstance } from "./db/index.js";
+import { initializeSocketIO } from "./socket/index.js";
 import { ApiError } from "./utils/ApiError.js";
 import { ApiResponse } from "./utils/ApiResponse.js";
 
@@ -22,10 +25,22 @@ const swaggerDocument = YAML.parse(file);
 
 const app = express();
 
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+  pingTimeout: 60000,
+  cors: {
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  },
+});
+
+app.set("io", io); // using set method to mount the `io` instance on the app to avoid usage of `global`
+
 // global middlewares
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -78,6 +93,7 @@ import quoteRouter from "./routes/public/quote.routes.js";
 import randomjokeRouter from "./routes/public/randomjoke.routes.js";
 import randomproductRouter from "./routes/public/randomproduct.routes.js";
 import randomuserRouter from "./routes/public/randomuser.routes.js";
+import youtubeRouter from "./routes/public/youtube.routes.js";
 
 // * App routes
 import userRouter from "./routes/apps/auth/user.routes.js";
@@ -97,6 +113,9 @@ import socialLikeRouter from "./routes/apps/social-media/like.routes.js";
 import socialPostRouter from "./routes/apps/social-media/post.routes.js";
 import socialProfileRouter from "./routes/apps/social-media/profile.routes.js";
 
+import chatRouter from "./routes/apps/chat-app/chat.routes.js";
+import messageRouter from "./routes/apps/chat-app/message.routes.js";
+
 import todoRouter from "./routes/apps/todo/todo.routes.js";
 
 // * Kitchen sink routes
@@ -109,6 +128,7 @@ import responseinspectionRouter from "./routes/kitchen-sink/responseinspection.r
 import statuscodeRouter from "./routes/kitchen-sink/statuscode.routes.js";
 
 // * Seeding handlers
+import { seedChatApp } from "./seeds/chat-app.seeds.js";
 import { seedEcommerce } from "./seeds/ecommerce.seeds.js";
 import { seedSocialMedia } from "./seeds/social-media.seeds.js";
 import { seedTodos } from "./seeds/todo.seeds.js";
@@ -127,6 +147,7 @@ app.use("/api/v1/public/quotes", quoteRouter);
 app.use("/api/v1/public/meals", mealRouter);
 app.use("/api/v1/public/dogs", dogRouter);
 app.use("/api/v1/public/cats", catRouter);
+app.use("/api/v1/public/youtube", youtubeRouter);
 
 // * App apis
 app.use("/api/v1/users", userRouter);
@@ -146,6 +167,9 @@ app.use("/api/v1/social-media/like", socialLikeRouter);
 app.use("/api/v1/social-media/bookmarks", socialBookmarkRouter);
 app.use("/api/v1/social-media/comments", socialCommentRouter);
 
+app.use("/api/v1/chat-app/chats", chatRouter);
+app.use("/api/v1/chat-app/messages", messageRouter);
+
 app.use("/api/v1/todos", todoRouter);
 
 // * Kitchen sink apis
@@ -162,6 +186,9 @@ app.get("/api/v1/seed/generated-credentials", getGeneratedCredentials);
 app.post("/api/v1/seed/todos", seedTodos);
 app.post("/api/v1/seed/ecommerce", seedUsers, seedEcommerce);
 app.post("/api/v1/seed/social-media", seedUsers, seedSocialMedia);
+app.post("/api/v1/seed/chat-app", seedUsers, seedChatApp);
+
+initializeSocketIO(io);
 
 // ! 🚫 Danger Zone
 app.delete("/api/v1/reset-db", async (req, res) => {
@@ -187,6 +214,11 @@ app.delete("/api/v1/reset-db", async (req, res) => {
         }
       }
     });
+    // remove the seeded users if exist
+    fs.unlink("./public/temp/seed-credentials.json", (err) => {
+      // fail silently
+      if (err) console.log("Seed credentials are missing.");
+    });
     return res
       .status(200)
       .json(new ApiResponse(200, null, "Database dropped successfully"));
@@ -210,4 +242,4 @@ app.use(
 // common error handling middleware
 app.use(errorHandler);
 
-export { app };
+export { httpServer };
